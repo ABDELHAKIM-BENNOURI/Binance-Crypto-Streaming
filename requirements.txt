@@ -1,0 +1,8 @@
+websocket-client
+kafka-python-ng
+python-dotenv
+apache-flink
+pandas
+scikit-learn
+numpy
+requests
