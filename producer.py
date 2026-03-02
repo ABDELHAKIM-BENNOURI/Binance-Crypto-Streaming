@@ -29,6 +29,10 @@ BINANCE_URL = os.getenv("BINANCE_WS_URL")       # URL du WebSocket Binance (mult
 KAFKA_BROKER = os.getenv("KAFKA_BROKER")         # Adresse du broker Kafka (ex: localhost:9092)
 TOPIC_PREFIX = os.getenv("KAFKA_TOPIC_PREFIX")   # Préfixe des topics Kafka (ex: crypto_trades_)
 
+# FIX BUG #1 : déclaration globale de producer pour éviter un NameError
+# si on_message est appelée avant l'initialisation dans __main__.
+producer = None
+
 
 # ===========================================================
 # CALLBACK : RÉCEPTION D'UN MESSAGE
@@ -180,3 +184,12 @@ if __name__ == "__main__":
     except Exception as e:
         # Si Kafka est indisponible au démarrage, on arrête immédiatement
         logger.critical(f"Impossible de démarrer le Producteur Kafka : {e}")
+
+    finally:
+        # FIX AVERTISSEMENT A : flush() + close() garantit que tous les messages
+        # encore dans le buffer (linger_ms) sont envoyés avant la fermeture du programme.
+        # Évite la perte de données lors d'un arrêt propre (Ctrl+C ou fin du script).
+        if producer:
+            producer.flush()
+            producer.close()
+            logger.info("Producteur Kafka fermé proprement (flush effectué).")

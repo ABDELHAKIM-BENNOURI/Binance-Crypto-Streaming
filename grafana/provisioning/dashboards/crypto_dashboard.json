@@ -1,0 +1,197 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_QUESTDB",
+      "label": "QuestDB",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "postgres",
+      "pluginName": "PostgreSQL"
+    }
+  ],
+  "__requires": [
+    { "type": "grafana", "id": "grafana", "name": "Grafana", "version": "8.0.0" },
+    { "type": "datasource", "id": "postgres", "name": "PostgreSQL", "version": "1.0.0" },
+    { "type": "panel", "id": "timeseries", "name": "Time series", "version": "" },
+    { "type": "panel", "id": "stat", "name": "Stat", "version": "" }
+  ],
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "datasource": { "type": "postgres", "uid": "questdb-uid" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "currencyUSD",
+          "decimals": 2
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "BTCUSDT" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "#F7931A", "mode": "fixed" } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "ETHUSDT" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "#627EEA", "mode": "fixed" } }]
+          }
+        ]
+      },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "legend": { "calcs": ["last", "min", "max"], "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "questdb-uid" },
+          "format": "time_series",
+          "rawSql": "SELECT timestamp AS time, price, symbol FROM trades WHERE symbol = 'BTCUSDT' AND $__timeFilter(timestamp) ORDER BY timestamp",
+          "refId": "BTC"
+        },
+        {
+          "datasource": { "type": "postgres", "uid": "questdb-uid" },
+          "format": "time_series",
+          "rawSql": "SELECT timestamp AS time, price, symbol FROM trades WHERE symbol = 'ETHUSDT' AND $__timeFilter(timestamp) ORDER BY timestamp",
+          "refId": "ETH"
+        }
+      ],
+      "title": "💹 Prix en temps réel — BTC & ETH (USD)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "postgres", "uid": "questdb-uid" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "currencyUSD",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 80 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 10 },
+      "id": 2,
+      "options": { "reduceOptions": { "calcs": ["last"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background", "graphMode": "area" },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "questdb-uid" },
+          "format": "time_series",
+          "rawSql": "SELECT timestamp AS time, price FROM trades WHERE symbol = 'BTCUSDT' ORDER BY timestamp DESC LIMIT 1",
+          "refId": "BTC_LAST"
+        }
+      ],
+      "title": "₿ BTC/USDT — Dernier Prix",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "postgres", "uid": "questdb-uid" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "currencyUSD",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 80 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 10 },
+      "id": 3,
+      "options": { "reduceOptions": { "calcs": ["last"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background", "graphMode": "area" },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "questdb-uid" },
+          "format": "time_series",
+          "rawSql": "SELECT timestamp AS time, price FROM trades WHERE symbol = 'ETHUSDT' ORDER BY timestamp DESC LIMIT 1",
+          "refId": "ETH_LAST"
+        }
+      ],
+      "title": "Ξ ETH/USDT — Dernier Prix",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "postgres", "uid": "questdb-uid" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "blue", "value": null }]
+          }
+        }
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 10 },
+      "id": 4,
+      "options": { "reduceOptions": { "calcs": ["sum"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background", "graphMode": "none" },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "questdb-uid" },
+          "format": "time_series",
+          "rawSql": "SELECT timestamp AS time, count(*) AS trades_count FROM trades WHERE $__timeFilter(timestamp) SAMPLE BY 1m",
+          "refId": "COUNT"
+        }
+      ],
+      "title": "📊 Trades reçus (fenêtre actuelle)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "postgres", "uid": "questdb-uid" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 1, "fillOpacity": 20 },
+          "unit": "short",
+          "decimals": 4
+        }
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 15 },
+      "id": 5,
+      "options": {
+        "legend": { "calcs": ["last", "max"], "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "questdb-uid" },
+          "format": "time_series",
+          "rawSql": "SELECT timestamp AS time, quantity FROM trades WHERE symbol = 'BTCUSDT' AND $__timeFilter(timestamp) ORDER BY timestamp",
+          "refId": "BTC_QTY"
+        },
+        {
+          "datasource": { "type": "postgres", "uid": "questdb-uid" },
+          "format": "time_series",
+          "rawSql": "SELECT timestamp AS time, quantity FROM trades WHERE symbol = 'ETHUSDT' AND $__timeFilter(timestamp) ORDER BY timestamp",
+          "refId": "ETH_QTY"
+        }
+      ],
+      "title": "📦 Volume échangé — BTC & ETH",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 36,
+  "style": "dark",
+  "tags": ["crypto", "binance", "realtime"],
+  "time": { "from": "now-15m", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "🚀 Binance Crypto Streaming — Vue Temps Réel",
+  "uid": "crypto-realtime-v1",
+  "version": 1
+}

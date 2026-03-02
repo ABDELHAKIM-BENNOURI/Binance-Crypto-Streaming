@@ -27,18 +27,20 @@ docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
 ## 2. 📡 Vérifier Kafka — Topics et Messages
 
+> ⚠️ Les images Confluent utilisent `kafka-topics` (sans `.sh`)
+
 ### Lister les topics créés
 ```powershell
-docker exec -it (docker ps -qf "name=kafka") kafka-topics.sh `
-  --bootstrap-server localhost:9092 `
+docker exec -it (docker ps -qf "name=kafka") kafka-topics `
+  --bootstrap-server kafka:9092 `
   --list
 ```
 **Attendu** : `crypto_trades_btcusdt` et `crypto_trades_ethusdt`
 
 ### Voir les messages en temps réel (topic BTC)
 ```powershell
-docker exec -it (docker ps -qf "name=kafka") kafka-console-consumer.sh `
-  --bootstrap-server localhost:9092 `
+docker exec -it (docker ps -qf "name=kafka") kafka-console-consumer `
+  --bootstrap-server kafka:9092 `
   --topic crypto_trades_btcusdt `
   --from-beginning `
   --max-messages 5
@@ -47,8 +49,9 @@ docker exec -it (docker ps -qf "name=kafka") kafka-console-consumer.sh `
 
 ### Voir le nombre de messages par topic
 ```powershell
-docker exec -it (docker ps -qf "name=kafka") kafka-run-class.sh kafka.tools.GetOffsetShell `
-  --broker-list localhost:9092 `
+docker exec -it (docker ps -qf "name=kafka") kafka-run-class `
+  kafka.tools.GetOffsetShell `
+  --broker-list kafka:9092 `
   --topic crypto_trades_btcusdt
 ```
 
@@ -66,14 +69,14 @@ docker logs (docker ps -qf "name=kafka") --tail 50
 
 Vérifier :
 - Onglet **Jobs** → le job doit être en état `RUNNING`
-- Onglet **Task Managers** → au moins 1 task manager avec des slots disponibles
+- Onglet **Task Managers** → au moins 1 task manager actif
 - Onglet **Metrics** → débit d'entrée/sortie en records/s
 
 ### Vérifier les logs du JobManager
 ```powershell
 docker logs (docker ps -qf "name=flink-jobmanager") --tail 100
 ```
-**Attendu** : pas d'erreur `ClassNotFoundException` (JARs OK) ni de `NullPointerException`.
+**Attendu** : pas d'erreur `ClassNotFoundException` ni de `NullPointerException`.
 
 ### Vérifier les logs du TaskManager
 ```powershell
@@ -85,7 +88,7 @@ docker logs (docker ps -qf "name=flink-taskmanager") --tail 100
 ## 4. 🗄️ Vérifier HDFS — Fichiers Parquet
 
 ### Interface Web HDFS
-👉 Ouvrir http://localhost:9870 → onglet **Utilities > Browse the file system**
+👉 Ouvrir http://localhost:9870 → **Utilities > Browse the file system**
 
 Chemin à vérifier : `/crypto-data/indicators_expert/`
 
@@ -95,14 +98,14 @@ Chemin à vérifier : `/crypto-data/indicators_expert/`
 ```powershell
 docker exec -it namenode hdfs dfs -ls -R /crypto-data/
 ```
-**Attendu** : dossiers partitionnés par `symbol=BTCUSDT` et `symbol=ETHUSDT` avec des fichiers `.parquet`.
+**Attendu** : dossiers `symbol=BTCUSDT` et `symbol=ETHUSDT` avec fichiers `.parquet`.
 
-#### Afficher la taille des données stockées
+#### Taille des données stockées
 ```powershell
 docker exec -it namenode hdfs dfs -du -h /crypto-data/
 ```
 
-#### Vérifier le nombre de blocs et la santé du cluster
+#### Santé du cluster HDFS
 ```powershell
 docker exec -it namenode hdfs dfsadmin -report
 ```
@@ -120,41 +123,59 @@ Dans la console SQL, exécuter :
 -- Voir les tables disponibles
 SHOW TABLES;
 
--- Voir les dernières données reçues
+-- Voir les dernières données reçues (alimentées par questdb_writer.py)
 SELECT * FROM trades ORDER BY timestamp DESC LIMIT 20;
 
 -- Compter les entrées par symbole
 SELECT symbol, count() FROM trades GROUP BY symbol;
 ```
 
+### Vérifier que `questdb_writer.py` tourne
+Dans la fenêtre terminal du writer, vous devez voir :
+```
+INFO - ✅ QuestDB Writer démarré — alimentation de Grafana en temps réel...
+INFO - 💹 50 trades envoyés à QuestDB
+INFO - 💹 100 trades envoyés à QuestDB
+```
+
 ---
 
-## 6. 📈 Vérifier Grafana — Dashboard
+## 6. 📈 Vérifier Grafana — Dashboard Auto-Provisionné
 
 ### Accès
 👉 Ouvrir http://localhost:3000  
 Login : `admin` / `admin`
 
-### Étapes de vérification
+### Le dashboard est automatiquement disponible
+Menu **Dashboards** → dossier **"Crypto Streaming"** → **"🚀 Binance Crypto Streaming — Vue Temps Réel"**
+
+### Panels disponibles
+| Panel | Description |
+|---|---|
+| **💹 Prix BTC & ETH** | Courbe temps réel, mise à jour toutes les 5s |
+| **₿ BTC Dernier Prix** | Stat en temps réel |
+| **Ξ ETH Dernier Prix** | Stat en temps réel |
+| **📊 Trades reçus** | Compteur fenêtre active |
+| **📦 Volume BTC & ETH** | Quantités échangées |
+
+### Vérifications
 1. **Data Sources** → Réglages > Data sources → QuestDB doit être `Connected` ✅
-2. **Dashboard Crypto** → Les panels BTC et ETH doivent afficher des courbes en temps réel
-3. **Alertes** → Vérifier que les règles d'alerte sur la volatilité sont actives
+2. **Dashboard** → les panels doivent afficher des courbes en temps réel
+3. **Fenêtre de temps** → mettre sur `Last 15 minutes` pour voir les données récentes
 
 ---
 
 ## 7. 🐍 Vérifier le Producer Python
 
-### Logs en temps réel (dans la fenêtre producer)
-Le producer affiche dans la console :
+### Logs en temps réel
 ```
-2024-xx-xx - INFO - ### Connexion Ouverte avec le WebSocket Binance ###
-2024-xx-xx - INFO - Producteur Kafka connecté à localhost:9092
+INFO - Producteur Kafka connecté à localhost:9092
+INFO - ### Connexion Ouverte avec le WebSocket Binance ###
 ```
 Si déconnecté, il affiche `Nouvelle tentative dans 5 secondes...` et reconnecte automatiquement.
 
 ### Tester manuellement la connexion Binance
 ```powershell
-# Envoyer une requête test au WebSocket Binance (nécessite wscat ou curl)
 curl -s "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT"
 ```
 **Attendu** : `{"symbol":"BTCUSDT","price":"XXXXX.XX"}`
@@ -163,22 +184,24 @@ curl -s "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT"
 
 ## 8. ❗ Dépannage Rapide
 
-| Symptôme | Vérification | Solution |
+| Symptôme | Cause probable | Solution |
 |---|---|---|
-| Kafka topic absent | `kafka-topics.sh --list` | Relancer `producer.py` |
-| Flink job `FAILED` | Logs JobManager | Vérifier JARs dans `jars/` |
-| HDFS vide | `hdfs dfs -ls /crypto-data/` | Vérifier ligne INSERT dans `flink_processor.py` |
-| Grafana sans données | Console QuestDB | Vérifier sink QuestDB dans Flink |
-| Conteneur `Exited` | `docker ps -a` | `docker-compose restart <service>` |
+| Kafka topic absent | Producer pas démarré | Relancer `python producer.py` |
+| `kafka-topics.sh not found` | Image Confluent (pas Bitnami) | Utiliser `kafka-topics` sans `.sh` |
+| Flink job `FAILED` | JARs manquants | Vérifier dossier `jars/` |
+| HDFS vide | Pipeline Flink pas encore lancé | Vérifier `flink_processor.py` |
+| Grafana sans données | `questdb_writer.py` pas lancé | Relancer `python questdb_writer.py` |
+| Grafana sans dashboard | Provisioning non monté | Vérifier volume dans `docker-compose.yml` |
+| Conteneur `Exited` | Crash au démarrage | `docker compose logs <service>` |
 
 ---
 
 ## 9. 🛑 Arrêt propre
 
 ```powershell
-# Arrêter tous les services Docker
-docker-compose down
+# Arrêter tous les services Docker (conserve les données)
+docker compose down
 
 # Arrêter et supprimer les volumes (repart de zéro)
-docker-compose down -v
+docker compose down --volumes --remove-orphans
 ```
