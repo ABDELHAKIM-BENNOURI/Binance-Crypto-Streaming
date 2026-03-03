@@ -158,6 +158,31 @@ if (-not $KafkaReady) {
 }
 Write-OK "Kafka est operationnel !"
 
+# --- Attente que QuestDB soit pret (max 60s) ---
+Write-INFO "Attente que QuestDB soit operationnel..."
+$ElapsedQDB = 0
+$QuestDBReady = $false
+
+while ($ElapsedQDB -lt $MaxWait) {
+    try {
+        $response = Invoke-RestMethod -Uri "http://localhost:9001/exec?query=select+1" -Method Get -ErrorAction Stop
+        if ($response) {
+            $QuestDBReady = $true
+            break
+        }
+    }
+    catch {}
+    Write-INFO "QuestDB pas encore pret... ($ElapsedQDB/$MaxWait s)"
+    Start-Sleep -Seconds $Interval
+    $ElapsedQDB += $Interval
+}
+
+if (-not $QuestDBReady) {
+    Write-ERR "QuestDB n'a pas demarre dans les $MaxWait secondes. Verifiez avec : docker compose logs questdb"
+    exit 1
+}
+Write-OK "QuestDB est operationnel !"
+
 # ============================================================
 # ETAPE 5 - Lancement du Producer et du Processeur Flink
 # ============================================================

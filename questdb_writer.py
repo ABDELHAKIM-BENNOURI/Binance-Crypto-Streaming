@@ -6,6 +6,7 @@ from kafka import KafkaConsumer
 from dotenv import load_dotenv
 import urllib.request
 import urllib.error
+import urllib.parse
 
 # ===========================================================
 # CONFIGURATION DU LOGGING
@@ -57,10 +58,46 @@ def write_to_questdb(symbol: str, price: float, quantity: float,
 
 
 # ===========================================================
+# INITIALISATION DE QUESTDB
+# ===========================================================
+def setup_questdb_table():
+    # URL de l'API REST de QuestDB pour exécuter des requêtes SQL
+    exec_url = "http://localhost:9001/exec"
+    
+    # Requête de création de table "trades" si elle n'existe pas.
+    # On précise que la colonne `timestamp` est l'horodatage désigné (Designated Timestamp).
+    query = """
+    CREATE TABLE IF NOT EXISTS trades (
+        symbol SYMBOL,
+        price DOUBLE,
+        quantity DOUBLE,
+        is_buyer_maker INT,
+        timestamp TIMESTAMP
+    ) timestamp(timestamp) PARTITION BY DAY WAL;
+    """
+    
+    try:
+        encoded_query = urllib.parse.urlencode({'query': query})
+        full_url = f"{exec_url}?{encoded_query}"
+        
+        req = urllib.request.Request(full_url, method="GET")
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            if resp.status == 200:
+                logger.info("✅ Table QuestDB 'trades' initialisée avec succès (horodatage désigné configuré).")
+            else:
+                logger.warning(f"Réponse inattendue lors de l'initialisation de QuestDB : {resp.status}")
+    except urllib.error.URLError as e:
+        logger.error(f"Impossible d'initialiser QuestDB à {exec_url} (attendez-vous à des erreurs) : {e}")
+    except Exception as e:
+        logger.error(f"Erreur inattendue lors de l'initialisation de QuestDB : {e}")
+
+# ===========================================================
 # CONSOMMATEUR KAFKA — Lit les trades et les envoie à QuestDB
 # ===========================================================
 def start_writer():
     logger.info(f"Connexion à Kafka ({KAFKA_BROKER}) sur les topics : {TOPICS}")
+
+    setup_questdb_table()
 
     consumer = KafkaConsumer(
         *TOPICS,

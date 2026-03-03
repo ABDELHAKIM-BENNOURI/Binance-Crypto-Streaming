@@ -10,12 +10,34 @@
     }
   ],
   "__requires": [
-    { "type": "grafana", "id": "grafana", "name": "Grafana", "version": "8.0.0" },
-    { "type": "datasource", "id": "postgres", "name": "PostgreSQL", "version": "1.0.0" },
-    { "type": "panel", "id": "timeseries", "name": "Time series", "version": "" },
-    { "type": "panel", "id": "stat", "name": "Stat", "version": "" }
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "8.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "postgres",
+      "name": "PostgreSQL",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "stat",
+      "name": "Stat",
+      "version": ""
+    }
   ],
-  "annotations": { "list": [] },
+  "annotations": {
+    "list": []
+  },
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -24,69 +46,172 @@
   "liveNow": true,
   "panels": [
     {
-      "datasource": { "type": "postgres", "uid": "questdb-uid" },
+      "datasource": {
+        "type": "postgres",
+        "uid": "questdb-uid"
+      },
+      "description": "Prix du Bitcoin (BTC/USDT) en temps réel. L'axe Y s'adapte automatiquement à la plage de prix actuelle pour afficher clairement chaque variation, même de quelques dollars.",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#F7931A"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 8,
+            "gradientMode": "scheme",
+            "spanNulls": true
+          },
           "unit": "currencyUSD",
           "decimals": 2
         },
-        "overrides": [
-          {
-            "matcher": { "id": "byName", "options": "BTCUSDT" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "#F7931A", "mode": "fixed" } }]
-          },
-          {
-            "matcher": { "id": "byName", "options": "ETHUSDT" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "#627EEA", "mode": "fixed" } }]
-          }
-        ]
+        "overrides": []
       },
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 0 },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
       "id": 1,
       "options": {
-        "legend": { "calcs": ["last", "min", "max"], "displayMode": "table", "placement": "bottom" },
-        "tooltip": { "mode": "multi" }
+        "legend": {
+          "calcs": [
+            "last",
+            "min",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
       },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "questdb-uid" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "questdb-uid"
+          },
           "format": "time_series",
-          "rawSql": "SELECT timestamp AS time, price, symbol FROM trades WHERE symbol = 'BTCUSDT' AND $__timeFilter(timestamp) ORDER BY timestamp",
+          "rawSql": "SELECT timestamp AS time, price AS \"BTC Prix\" FROM trades WHERE symbol = 'BTCUSDT' AND $__timeFilter(timestamp) ORDER BY timestamp",
           "refId": "BTC"
-        },
-        {
-          "datasource": { "type": "postgres", "uid": "questdb-uid" },
-          "format": "time_series",
-          "rawSql": "SELECT timestamp AS time, price, symbol FROM trades WHERE symbol = 'ETHUSDT' AND $__timeFilter(timestamp) ORDER BY timestamp",
-          "refId": "ETH"
         }
       ],
-      "title": "💹 Prix en temps réel — BTC & ETH (USD)",
+      "title": "₿ BTC/USDT — Prix Temps Réel",
       "type": "timeseries"
     },
     {
-      "datasource": { "type": "postgres", "uid": "questdb-uid" },
+      "datasource": {
+        "type": "postgres",
+        "uid": "questdb-uid"
+      },
+      "description": "Prix d'Ethereum (ETH/USDT) en temps réel. L'axe Y s'adapte automatiquement à la plage de prix actuelle pour afficher clairement chaque variation, même de quelques dollars.",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#627EEA"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 8,
+            "gradientMode": "scheme",
+            "spanNulls": true
+          },
+          "unit": "currencyUSD",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 10,
+      "options": {
+        "legend": {
+          "calcs": [
+            "last",
+            "min",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "questdb-uid"
+          },
+          "format": "time_series",
+          "rawSql": "SELECT timestamp AS time, price AS \"ETH Prix\" FROM trades WHERE symbol = 'ETHUSDT' AND $__timeFilter(timestamp) ORDER BY timestamp",
+          "refId": "ETH"
+        }
+      ],
+      "title": "Ξ ETH/USDT — Prix Temps Réel",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "questdb-uid"
+      },
+      "description": "Affiche le tout dernier prix de transaction pour Bitcoin (BTC/USDT). Cette valeur est mise à jour en temps réel à chaque nouveau trade reçu de Binance.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
           "unit": "currencyUSD",
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "red", "value": 80 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
             ]
           }
         }
       },
-      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 10 },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 10
+      },
       "id": 2,
-      "options": { "reduceOptions": { "calcs": ["last"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background", "graphMode": "area" },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ]
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "area"
+      },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "questdb-uid" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "questdb-uid"
+          },
           "format": "time_series",
           "rawSql": "SELECT timestamp AS time, price FROM trades WHERE symbol = 'BTCUSDT' ORDER BY timestamp DESC LIMIT 1",
           "refId": "BTC_LAST"
@@ -96,26 +221,56 @@
       "type": "stat"
     },
     {
-      "datasource": { "type": "postgres", "uid": "questdb-uid" },
+      "datasource": {
+        "type": "postgres",
+        "uid": "questdb-uid"
+      },
+      "description": "Affiche le tout dernier prix de transaction pour Ethereum (ETH/USDT). Cette valeur est mise à jour en temps réel à chaque nouveau trade reçu de Binance.",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "unit": "currencyUSD",
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "red", "value": 80 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
             ]
           }
         }
       },
-      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 10 },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 10
+      },
       "id": 3,
-      "options": { "reduceOptions": { "calcs": ["last"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background", "graphMode": "area" },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ]
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "area"
+      },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "questdb-uid" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "questdb-uid"
+          },
           "format": "time_series",
           "rawSql": "SELECT timestamp AS time, price FROM trades WHERE symbol = 'ETHUSDT' ORDER BY timestamp DESC LIMIT 1",
           "refId": "ETH_LAST"
@@ -125,23 +280,52 @@
       "type": "stat"
     },
     {
-      "datasource": { "type": "postgres", "uid": "questdb-uid" },
+      "datasource": {
+        "type": "postgres",
+        "uid": "questdb-uid"
+      },
+      "description": "Nombre total de trades reçus de Binance dans la fenêtre de temps sélectionnée. Une chute soudaine peut indiquer un problème de connexion ou d'ingestion de données.",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "unit": "short",
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "blue", "value": null }]
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
           }
         }
       },
-      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 10 },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 10
+      },
       "id": 4,
-      "options": { "reduceOptions": { "calcs": ["sum"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background", "graphMode": "none" },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ]
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "none"
+      },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "questdb-uid" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "questdb-uid"
+          },
           "format": "time_series",
           "rawSql": "SELECT timestamp AS time, count(*) AS trades_count FROM trades WHERE $__timeFilter(timestamp) SAMPLE BY 1m",
           "refId": "COUNT"
@@ -151,47 +335,484 @@
       "type": "stat"
     },
     {
-      "datasource": { "type": "postgres", "uid": "questdb-uid" },
+      "datasource": {
+        "type": "postgres",
+        "uid": "questdb-uid"
+      },
+      "description": "Volume de cryptomonnaies échangées (en unités de coin) pour BTC et ETH. Un pic soudain de volume est souvent le signe d'un événement important sur le marché (news, liquidation, etc.).",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 1, "fillOpacity": 20 },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 20
+          },
           "unit": "short",
           "decimals": 4
         }
       },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 15 },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
       "id": 5,
       "options": {
-        "legend": { "calcs": ["last", "max"], "displayMode": "table", "placement": "bottom" },
-        "tooltip": { "mode": "multi" }
+        "legend": {
+          "calcs": [
+            "last",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
       },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "questdb-uid" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "questdb-uid"
+          },
           "format": "time_series",
-          "rawSql": "SELECT timestamp AS time, quantity FROM trades WHERE symbol = 'BTCUSDT' AND $__timeFilter(timestamp) ORDER BY timestamp",
+          "rawSql": "SELECT timestamp AS time, quantity AS \"BTC Volume\" FROM trades WHERE symbol = 'BTCUSDT' AND $__timeFilter(timestamp) ORDER BY timestamp",
           "refId": "BTC_QTY"
         },
         {
-          "datasource": { "type": "postgres", "uid": "questdb-uid" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "questdb-uid"
+          },
           "format": "time_series",
-          "rawSql": "SELECT timestamp AS time, quantity FROM trades WHERE symbol = 'ETHUSDT' AND $__timeFilter(timestamp) ORDER BY timestamp",
+          "rawSql": "SELECT timestamp AS time, quantity AS \"ETH Volume\" FROM trades WHERE symbol = 'ETHUSDT' AND $__timeFilter(timestamp) ORDER BY timestamp",
           "refId": "ETH_QTY"
         }
       ],
       "title": "📦 Volume échangé — BTC & ETH",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "questdb-uid"
+      },
+      "description": "🔴 SIGNAL DE RISQUE BTC — Mesure l'écart-type du prix Bitcoin sur des fenêtres de 1 minute. Plus la valeur est élevée, plus le prix oscille fortement (marché instable). Proche de zéro = marché calme et stable.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#F7931A"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "gradientMode": "scheme"
+          },
+          "unit": "currencyUSD",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 20
+              },
+              {
+                "color": "orange",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 23
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "questdb-uid"
+          },
+          "format": "time_series",
+          "rawSql": "SELECT timestamp AS time, stddev(price) AS \"BTC Volatilité\" FROM trades WHERE symbol = 'BTCUSDT' AND $__timeFilter(timestamp) SAMPLE BY 1m",
+          "refId": "BTC_VOL"
+        }
+      ],
+      "title": "⚠️ Volatilité BTC (Risque Marché)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "questdb-uid"
+      },
+      "description": "🔴 SIGNAL DE RISQUE ETH — Mesure l'écart-type du prix Ethereum sur des fenêtres de 1 minute. Plus la valeur est élevée, plus le prix oscille fortement (marché instable). Proche de zéro = marché calme et stable.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#627EEA"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "gradientMode": "scheme"
+          },
+          "unit": "currencyUSD",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.5
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 23
+      },
+      "id": 11,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "questdb-uid"
+          },
+          "format": "time_series",
+          "rawSql": "SELECT timestamp AS time, stddev(price) AS \"ETH Volatilité\" FROM trades WHERE symbol = 'ETHUSDT' AND $__timeFilter(timestamp) SAMPLE BY 1m",
+          "refId": "ETH_VOL"
+        }
+      ],
+      "title": "⚠️ Volatilité ETH (Risque Marché)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "questdb-uid"
+      },
+      "description": "⚖️ PRESSION ACHETEUR vs VENDEUR (BTC) — Mesure le volume total acheté (valeurs positives, vert) vs le volume total vendu (valeurs négatives, rouge) par minute. Si la pression vendeuse domine et s'accélère, c'est un signal de risque de baisse de prix. À l'inverse, une pression acheteuse forte suggère une tendance haussière.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 30
+          },
+          "unit": "short",
+          "decimals": 4
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Volume Acheteur"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#73BF69",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Volume Vendeur"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#F2495C",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 23
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [
+            "sum",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "questdb-uid"
+          },
+          "format": "time_series",
+          "rawSql": "SELECT timestamp AS time, sum(quantity) AS \"Volume Acheteur\" FROM trades WHERE symbol = 'BTCUSDT' AND is_buyer_maker = 1 AND $__timeFilter(timestamp) SAMPLE BY 1m",
+          "refId": "BTC_BUY"
+        },
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "questdb-uid"
+          },
+          "format": "time_series",
+          "rawSql": "SELECT timestamp AS time, sum(quantity) * -1 AS \"Volume Vendeur\" FROM trades WHERE symbol = 'BTCUSDT' AND is_buyer_maker = 0 AND $__timeFilter(timestamp) SAMPLE BY 1m",
+          "refId": "BTC_SELL"
+        }
+      ],
+      "title": "⚖️ Pression Acheteur / Vendeur — BTC (Signal de Tendance)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "questdb-uid"
+      },
+      "description": "🐋 DÉTECTION DE BALEINES (Whale Alert) — Affiche uniquement les transactions dont la valeur totale dépasse 50 000 USD (price × quantity). Les gros mouvements soudains effectués par des investisseurs institutionnels ou des 'baleines' crypto peuvent provoquer des changements de tendance importants. Chaque point sur ce graphique est une alerte de transaction massive.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#FF9830"
+          },
+          "custom": {
+            "lineWidth": 0,
+            "fillOpacity": 80,
+            "drawStyle": "points",
+            "pointSize": 8
+          },
+          "unit": "currencyUSD",
+          "decimals": 0
+        }
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 32
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [
+            "count"
+          ],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "questdb-uid"
+          },
+          "format": "time_series",
+          "rawSql": "SELECT timestamp AS time, (price * quantity) AS \"Montant Trade ($)\" FROM trades WHERE (price * quantity) > 50000 AND $__timeFilter(timestamp) ORDER BY timestamp",
+          "refId": "WHALE"
+        }
+      ],
+      "title": "🐋 Whale Alert — Transactions > 50 000 USD",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "questdb-uid"
+      },
+      "description": "📈 VOLUME ANORMAL — Compare le volume total des 5 dernières minutes (ligne rouge) avec la moyenne horaire (ligne bleue). Lorsque la ligne rouge dépasse significativement la ligne bleue, cela indique un pic de volume anormal : souvent le signe d'un mouvement fort imminent (cassure de support/résistance, liquidations en cascade, annonce importante sur le marché).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          },
+          "unit": "short",
+          "decimals": 4
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Volume 5min"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#F2495C",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Volume 1h (÷12)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#5794F2",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 32
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "questdb-uid"
+          },
+          "format": "time_series",
+          "rawSql": "SELECT timestamp AS time, sum(quantity) AS \"Volume 5min\" FROM trades WHERE symbol = 'BTCUSDT' AND $__timeFilter(timestamp) SAMPLE BY 5m",
+          "refId": "BTC_VOL5M"
+        },
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "questdb-uid"
+          },
+          "format": "time_series",
+          "rawSql": "SELECT timestamp AS time, sum(quantity) AS \"Volume 1h (÷12)\" FROM trades WHERE symbol = 'BTCUSDT' AND $__timeFilter(timestamp) SAMPLE BY 1h",
+          "refId": "BTC_AVG1H"
+        }
+      ],
+      "title": "📈 Volume Anormal — Pic vs Moyenne Horaire (BTC)",
       "type": "timeseries"
     }
   ],
   "refresh": "5s",
   "schemaVersion": 36,
   "style": "dark",
-  "tags": ["crypto", "binance", "realtime"],
-  "time": { "from": "now-15m", "to": "now" },
+  "tags": [
+    "crypto",
+    "binance",
+    "realtime",
+    "risk"
+  ],
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
   "timepicker": {},
   "timezone": "browser",
   "title": "🚀 Binance Crypto Streaming — Vue Temps Réel",
   "uid": "crypto-realtime-v1",
-  "version": 1
+  "version": 2
 }
